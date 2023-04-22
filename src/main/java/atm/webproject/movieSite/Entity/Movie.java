@@ -67,6 +67,10 @@ public class Movie {
     @ManyToMany(mappedBy = "savedMovies")
     private Set<User> users = new HashSet<>();
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "movie")
+    private Set<Review> reviews = new HashSet<>();
+
     public Movie(Long id, String name, int rating, String pathImage, String trailer,String nameActors, String gender) {
         Id = id;
         this.name = name;

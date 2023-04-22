@@ -1,8 +1,12 @@
 package atm.webproject.movieSite.Service;
 
+import atm.webproject.movieSite.Dtos.ReviewCreateDto;
+import atm.webproject.movieSite.Dtos.UserGetDto;
 import atm.webproject.movieSite.Entity.Movie;
+import atm.webproject.movieSite.Entity.Review;
 import atm.webproject.movieSite.Entity.User;
 import atm.webproject.movieSite.Repository.MovieRepository;
+import atm.webproject.movieSite.Repository.ReviewRepository;
 import atm.webproject.movieSite.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,11 +19,13 @@ public class UserService {
 
     private final UserRepository _userRepository;
     private final MovieRepository _movieRepository;
+    private final ReviewRepository _reviewRepository;
 
     @Autowired
-    public UserService(UserRepository _userRepository, MovieRepository movieRepository) {
+    public UserService(UserRepository _userRepository, MovieRepository movieRepository, ReviewRepository reviewRepository) {
         this._userRepository = _userRepository;
         this._movieRepository = movieRepository;
+        this._reviewRepository = reviewRepository;
     }
 
     public List<User> getUsers()
@@ -91,5 +97,48 @@ public class UserService {
         }
         User user = _userRepository.getReferenceById(userId);
         return new ArrayList<>(user.getSavedMovies());
+    }
+
+    public void saveReview(Long userId, Long movieId, ReviewCreateDto reviewDto)
+    {
+        boolean existsUser = _userRepository.existsById(userId);
+        boolean existsMovie = _movieRepository.existsById(movieId);
+
+        if(!existsUser)
+        {
+            throw new IllegalStateException("user with id "+userId+" does not exist in database");
+        }
+
+        if(!existsMovie)
+        {
+            throw new IllegalStateException("movie with id "+movieId+" does not exist in database");
+        }
+
+        List<Review> reviews = _reviewRepository.findAll();
+        for (Review rev : reviews)
+        {
+            if(Objects.equals(rev.getMovie().getId(), movieId) && Objects.equals(rev.getUser().getId(), userId))
+            {
+                throw new IllegalStateException("User with id: "+userId+" already has a review at this movie");
+            }
+        }
+
+        Review review = new Review(reviewDto.getContent(), reviewDto.getNumberOfStars());
+        review.assignUser(_userRepository.getReferenceById(userId));
+        review.assignMovie(_movieRepository.getReferenceById(movieId));
+
+        _reviewRepository.save(review);
+    }
+
+    public UserGetDto getUserById(Long userId)
+    {
+        boolean exists = _userRepository.existsById(userId);
+        if(!exists)
+        {
+            throw new IllegalStateException("user with id "+userId+" does not exist in database");
+        }
+
+        User user =  _userRepository.findById(userId).get();
+        return new UserGetDto(user.getId(), user.getName(), user.getUsername(), user.getEmail(), user.getNumberOfPoints());
     }
 }

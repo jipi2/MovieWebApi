@@ -1,5 +1,6 @@
 package atm.webproject.movieSite.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,25 +26,6 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long Id;
-
-    public User(Long id, String name, String username, String email, String password, int numberOfPoints) {
-        Id = id;
-        this.name = name;
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.numberOfPoints = numberOfPoints;
-    }
-
-    public User(String name, String username, String email, String password, int numberOfPoints) {
-        this.name = name;
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.numberOfPoints = numberOfPoints;
-    }
-    public User() {
-    }
 
     @Column(
             name = "name",
@@ -79,6 +61,29 @@ public class User {
             columnDefinition = "INT"
     )
     int numberOfPoints;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    private Set<Review> reviews = new HashSet<>();
+
+    public User(Long id, String name, String username, String email, String password, int numberOfPoints) {
+        Id = id;
+        this.name = name;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.numberOfPoints = numberOfPoints;
+    }
+
+    public User(String name, String username, String email, String password, int numberOfPoints) {
+        this.name = name;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.numberOfPoints = numberOfPoints;
+    }
+    public User() {
+    }
 
     @ManyToMany
     @JoinTable(

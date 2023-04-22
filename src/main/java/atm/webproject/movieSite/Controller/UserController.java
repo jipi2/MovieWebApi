@@ -1,5 +1,7 @@
 package atm.webproject.movieSite.Controller;
 
+import atm.webproject.movieSite.Dtos.ReviewCreateDto;
+import atm.webproject.movieSite.Dtos.UserGetDto;
 import atm.webproject.movieSite.Entity.Movie;
 import atm.webproject.movieSite.Entity.User;
 import atm.webproject.movieSite.Service.MovieService;
@@ -14,7 +16,7 @@ import java.util.Set;
 @RequestMapping(path = "api/user")
 public class UserController
 {
-    private  final UserService _userService;
+    private final UserService _userService;
 
     @Autowired
     public UserController(UserService _userService) {
@@ -62,4 +64,19 @@ public class UserController
         return  _userService.getWatchList(userId);
     }
 
+    @PostMapping("/saveReview/{userId}/movie/{movieId}")
+    public void saveReview(
+            @PathVariable("userId") Long userId,
+            @PathVariable("movieId")Long movieId,
+            @RequestBody ReviewCreateDto reviewDto
+            )
+    {
+        _userService.saveReview(userId, movieId, reviewDto);
+    }
+
+    @GetMapping("getUserById/{userId}")
+    public UserGetDto getUserById(@PathVariable("userId")Long userId)
+    {
+        return _userService.getUserById(userId);
+    }
 }
