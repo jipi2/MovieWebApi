@@ -1,24 +1,25 @@
 package atm.webproject.movieSite.Service;
 
+import atm.webproject.movieSite.Entity.Movie;
 import atm.webproject.movieSite.Entity.User;
+import atm.webproject.movieSite.Repository.MovieRepository;
 import atm.webproject.movieSite.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import javax.transaction.Transactional;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserService {
 
     private final UserRepository _userRepository;
+    private final MovieRepository _movieRepository;
 
     @Autowired
-    public UserService(UserRepository _userRepository) {
+    public UserService(UserRepository _userRepository, MovieRepository movieRepository) {
         this._userRepository = _userRepository;
+        this._movieRepository = movieRepository;
     }
 
     public List<User> getUsers()
@@ -70,5 +71,25 @@ public class UserService {
             user.setEmail(email);
         }
 
+    }
+
+    public void addMovieToWatchList(Long userId, Long movieId)
+    {
+        User user = _userRepository.findById(userId).get();
+        Movie movie = _movieRepository.findById(movieId).get();
+
+        user.addMovieToWatchList(movie);
+        _userRepository.save(user);
+    }
+
+    public List<Movie> getWatchList(long userId)
+    {
+        boolean exists = _userRepository.existsById(userId);
+        if(!exists)
+        {
+            throw new IllegalStateException("user with id "+userId+" does not exist in database");
+        }
+        User user = _userRepository.getReferenceById(userId);
+        return new ArrayList<>(user.getSavedMovies());
     }
 }

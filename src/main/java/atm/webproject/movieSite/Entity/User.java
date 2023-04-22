@@ -6,6 +6,9 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -14,7 +17,8 @@ import javax.persistence.*;
 @Table(
         name="Users",
         uniqueConstraints = {
-                @UniqueConstraint(name = "student_email_unique", columnNames = "email")
+                @UniqueConstraint(name = "user_email_unique", columnNames = "email"),
+                @UniqueConstraint(name = "user_username_unique", columnNames = "username")
         }
 )
 public class User {
@@ -75,5 +79,19 @@ public class User {
             columnDefinition = "INT"
     )
     int numberOfPoints;
+
+    @ManyToMany
+    @JoinTable(
+            name="user_movie",
+            joinColumns = @JoinColumn(name="user_id"),
+            inverseJoinColumns = @JoinColumn(name = "movie_id")
+    )
+    private Set<Movie> savedMovies = new HashSet<>();
+
+    public void addMovieToWatchList(Movie movie)
+    {
+        savedMovies.add(movie);
+    }
+
 
 }

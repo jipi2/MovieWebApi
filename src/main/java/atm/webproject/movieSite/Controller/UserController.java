@@ -1,11 +1,14 @@
 package atm.webproject.movieSite.Controller;
 
+import atm.webproject.movieSite.Entity.Movie;
 import atm.webproject.movieSite.Entity.User;
+import atm.webproject.movieSite.Service.MovieService;
 import atm.webproject.movieSite.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping(path = "api/user")
@@ -44,5 +47,19 @@ public class UserController
         _userService.updateUser(userId, name, email);
     }
 
+    @PutMapping("/addMovieWatchList/{userId}/movie/{movieId}")
+    public void saveMovieToWatchList(
+            @PathVariable("userId") Long userId,
+            @PathVariable("movieId") Long movieId
+    )
+    {
+        _userService.addMovieToWatchList(userId, movieId);
+    }
+
+    @GetMapping("/getWatchList/{userId}")
+    public List<Movie> getWatchList(@PathVariable("userId")Long userId)
+    {
+        return  _userService.getWatchList(userId);
+    }
 
 }
