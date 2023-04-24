@@ -3,6 +3,7 @@ package atm.webproject.movieSite.Controller;
 import atm.webproject.movieSite.Dtos.ReviewCreateDto;
 import atm.webproject.movieSite.Dtos.UserGetDto;
 import atm.webproject.movieSite.Entity.Movie;
+import atm.webproject.movieSite.Entity.Role;
 import atm.webproject.movieSite.Entity.User;
 import atm.webproject.movieSite.Service.MovieService;
 import atm.webproject.movieSite.Service.UserService;
@@ -78,5 +79,11 @@ public class UserController
     public UserGetDto getUserById(@PathVariable("userId")Long userId)
     {
         return _userService.getUserById(userId);
+    }
+
+    @PostMapping("/addRole")
+    public void getUserById(@RequestBody Role role)
+    {
+         _userService.addRole(role);
     }
 }

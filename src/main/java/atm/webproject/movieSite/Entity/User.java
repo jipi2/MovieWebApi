@@ -93,6 +93,15 @@ public class User {
     )
     private Set<Movie> savedMovies = new HashSet<>();
 
+    @ManyToMany
+    @JoinTable(
+            name="user_role",
+            joinColumns = @JoinColumn(name="user_id"),
+            inverseJoinColumns = @JoinColumn(name="role_id")
+    )
+    private Set<Role> savedRoles = new HashSet<>();
+
+    public void addRoleToUser(Role role) {savedRoles.add(role);}
     public void addMovieToWatchList(Movie movie)
     {
         savedMovies.add(movie);

@@ -4,9 +4,11 @@ import atm.webproject.movieSite.Dtos.ReviewCreateDto;
 import atm.webproject.movieSite.Dtos.UserGetDto;
 import atm.webproject.movieSite.Entity.Movie;
 import atm.webproject.movieSite.Entity.Review;
+import atm.webproject.movieSite.Entity.Role;
 import atm.webproject.movieSite.Entity.User;
 import atm.webproject.movieSite.Repository.MovieRepository;
 import atm.webproject.movieSite.Repository.ReviewRepository;
+import atm.webproject.movieSite.Repository.RoleRepository;
 import atm.webproject.movieSite.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,12 +22,14 @@ public class UserService {
     private final UserRepository _userRepository;
     private final MovieRepository _movieRepository;
     private final ReviewRepository _reviewRepository;
+    private final RoleRepository _roleRepository;
 
     @Autowired
-    public UserService(UserRepository _userRepository, MovieRepository movieRepository, ReviewRepository reviewRepository) {
+    public UserService(UserRepository _userRepository, MovieRepository movieRepository, ReviewRepository reviewRepository, RoleRepository roleRepository) {
         this._userRepository = _userRepository;
         this._movieRepository = movieRepository;
         this._reviewRepository = reviewRepository;
+        this._roleRepository = roleRepository;
     }
 
     public List<User> getUsers()
@@ -52,6 +56,14 @@ public class UserService {
         {
             throw new IllegalStateException("user with id "+ userId + " does not exists");
         }
+        User user = _userRepository.findById(userId).get();
+        List<Review> reviews = new ArrayList<>(user.getReviews());
+
+        for(Review r : reviews)
+        {
+            _reviewRepository.deleteById(r.getId());
+        }
+
         _userRepository.deleteById(userId);
     }
 
@@ -140,5 +152,10 @@ public class UserService {
 
         User user =  _userRepository.findById(userId).get();
         return new UserGetDto(user.getId(), user.getName(), user.getUsername(), user.getEmail(), user.getNumberOfPoints());
+    }
+
+    public void addRole(Role role)
+    {
+        _roleRepository.save(role);
     }
 }

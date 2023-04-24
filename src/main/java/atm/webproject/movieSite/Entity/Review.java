@@ -42,7 +42,7 @@ public class Review
     @JoinColumn(name = "user_id", referencedColumnName = "Id")
     private User user;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name="movie_id", referencedColumnName = "Id")
     private Movie movie;
 
