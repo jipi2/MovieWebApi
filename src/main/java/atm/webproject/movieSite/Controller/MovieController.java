@@ -3,12 +3,14 @@ package atm.webproject.movieSite.Controller;
 import atm.webproject.movieSite.Entity.Movie;
 import atm.webproject.movieSite.Service.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:8080/JipiMovies/html/home.html")
 @RequestMapping(path = "api/movie")
 public class MovieController {
 
@@ -20,14 +22,17 @@ public class MovieController {
     }
 
     @GetMapping("/getMovies")
+    @CrossOrigin(origins = "*")
     public List<Movie> getMovies()
     {
         return _movieService.getMovies();
     }
 
+
     @GetMapping("/getGenderMovies/{gender}")
-    public List<Movie> getGenderMovies(@PathVariable("gender")String gender)
-    {
+//    @CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST})
+    public List<Movie> getGenderMovies(@PathVariable("gender") String gender) {
+
         return _movieService.getGenderMovies(gender);
     }
 

@@ -12,6 +12,4 @@ public class  MovieSiteApplication {
 		SpringApplication.run(MovieSiteApplication.class, args);
 
 	}
-
-
 }

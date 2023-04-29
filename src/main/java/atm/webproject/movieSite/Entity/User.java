@@ -2,15 +2,19 @@ package atm.webproject.movieSite.Entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+@Data
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -22,7 +26,7 @@ import java.util.Set;
                 @UniqueConstraint(name = "user_username_unique", columnNames = "username")
         }
 )
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long Id;
@@ -93,7 +97,7 @@ public class User {
     )
     private Set<Movie> savedMovies = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name="user_role",
             joinColumns = @JoinColumn(name="user_id"),
@@ -107,5 +111,36 @@ public class User {
         savedMovies.add(movie);
     }
 
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        List<SimpleGrantedAuthority> listAuth = new ArrayList<>();
+
+        for (Role r : savedRoles)
+        {
+            listAuth.add(new SimpleGrantedAuthority(r.getRoleName()));
+        }
+        return listAuth;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return false;
+    }
 
 }

@@ -37,7 +37,7 @@ public class Movie {
             name = "rating",
             nullable = false
     )
-    int rating;
+    double rating;
 
     @Column(
             name = "pathImage",
@@ -63,6 +63,12 @@ public class Movie {
     )
     String gender;
 
+    @Column(
+            name = "year",
+            nullable = false
+    )
+    int year;
+
     @JsonIgnore
     @ManyToMany(mappedBy = "savedMovies")
     private Set<User> users = new HashSet<>();
@@ -71,7 +77,7 @@ public class Movie {
     @OneToMany(mappedBy = "movie")
     private Set<Review> reviews = new HashSet<>();
 
-    public Movie(Long id, String name, int rating, String pathImage, String trailer,String nameActors, String gender) {
+    public Movie(Long id, String name, float rating, String pathImage, String trailer,String nameActors, String gender, int year) {
         Id = id;
         this.name = name;
         this.rating = rating;
@@ -79,23 +85,26 @@ public class Movie {
         this.trailer = trailer;
         this.nameActors = nameActors;
         this.gender = gender;
+        this.year = year;
     }
 
-    public Movie(String name, int rating, String pathImage, String trailer, String nameActors, String gender) {
+    public Movie(String name, float rating, String pathImage, String trailer, String nameActors, String gender, int year) {
         this.name = name;
         this.rating = rating;
         this.pathImage = pathImage;
         this.trailer = trailer;
         this.nameActors = nameActors;
         this.gender=gender;
+        this.year = year;
     }
 
-    public Movie(String name, int rating, String pathImage, String trailer, String gender) {
+    public Movie(String name, float rating, String pathImage, String trailer, String gender, int year) {
         this.name = name;
         this.rating = rating;
         this.pathImage = pathImage;
         this.trailer = trailer;
         this.gender = gender;
+        this.year = year;
     }
 
     public Movie() {

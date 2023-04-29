@@ -1,17 +1,19 @@
 package atm.webproject.movieSite.Controller;
 
-import atm.webproject.movieSite.Dtos.ReviewCreateDto;
-import atm.webproject.movieSite.Dtos.UserGetDto;
+import atm.webproject.movieSite.Configuration.AuthenticationResponse;
+import atm.webproject.movieSite.Dtos.*;
 import atm.webproject.movieSite.Entity.Movie;
 import atm.webproject.movieSite.Entity.Role;
 import atm.webproject.movieSite.Entity.User;
-import atm.webproject.movieSite.Service.MovieService;
 import atm.webproject.movieSite.Service.UserService;
+import io.jsonwebtoken.Jwt;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping(path = "api/user")
@@ -36,6 +38,16 @@ public class UserController
         _userService.addNewUser(user);
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<AuthenticationResponse> registerUser(@RequestBody UserRegisterDto userDto) throws NoSuchAlgorithmException {
+        return ResponseEntity.ok(_userService.registerUser(userDto));
+    }
+    @PostMapping("/login")
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<AuthenticationResponse> registerUser(@RequestBody UserLoginDto userDto) throws NoSuchAlgorithmException {
+        return ResponseEntity.ok(_userService.loginUser(userDto));
+    }
+
     @DeleteMapping(path = "/deleteUser/{userId}")
     public void deleteUser(@PathVariable("userId") Long userId) {
         _userService.deleteUser(userId);
@@ -48,6 +60,51 @@ public class UserController
             @RequestParam(required = false) String email)
     {
         _userService.updateUser(userId, name, email);
+    }
+
+    @PutMapping(path="/updatePassword")
+    public void updatePass(
+            @RequestHeader(name = "Authorization") String authorizationHeader,
+            @RequestBody PassUpdate passDto
+            ) throws IllegalAccessException {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            _userService.updatePass(token, passDto);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
+    }
+
+    @PutMapping(path="/updateEmail")
+    public void updateEmail(
+            @RequestHeader(name = "Authorization") String authorizationHeader,
+            @RequestBody EmailUpdate emailDto
+    ) throws IllegalAccessException {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            _userService.updateEmail(token, emailDto);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
+    }
+
+    @PutMapping(path="/updateName")
+    public void updateName(
+            @RequestHeader(name = "Authorization") String authorizationHeader,
+            @RequestBody NameUpdate nameDto
+    ) throws IllegalAccessException {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            _userService.updateName(token, nameDto);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
     }
 
     @PutMapping("/addMovieWatchList/{userId}/movie/{movieId}")
@@ -79,6 +136,19 @@ public class UserController
     public UserGetDto getUserById(@PathVariable("userId")Long userId)
     {
         return _userService.getUserById(userId);
+    }
+
+    @GetMapping("getUserFromJwt")
+    public UserGetDto getUserFromJwt(@RequestHeader(name = "Authorization") String authorizationHeader) throws IllegalAccessException {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            return _userService.getUserDtoFromJwt(token);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a instrat in service");
+
     }
 
     @PostMapping("/addRole")
