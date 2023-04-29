@@ -12,19 +12,10 @@ import atm.webproject.movieSite.Repository.ReviewRepository;
 import atm.webproject.movieSite.Repository.RoleRepository;
 import atm.webproject.movieSite.Repository.UserRepository;
 import atm.webproject.movieSite.utils.HashClass;
-import org.jboss.logging.BasicLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.naming.AuthenticationException;
 import javax.swing.text.html.Option;
 import javax.transaction.Transactional;
 import java.security.NoSuchAlgorithmException;
@@ -119,26 +110,30 @@ public class UserService{
 
     }
 
-    public void addMovieToWatchList(Long userId, Long movieId)
+    public void addMovieToWatchList(String token, Long movieId)
     {
-        User user = _userRepository.findById(userId).get();
-        Movie movie = _movieRepository.findById(movieId).get();
+        String username = _jwtService.extractUsername(token);
+        Optional<User> userOpt = _userRepository.findUserByUsername(username);
+        if(!userOpt.isPresent())
+            throw new IllegalStateException("This user does not exists in database");
+
+        User user = userOpt.get();
+        Optional<Movie> movieOpt = _movieRepository.findById(movieId);
+        if(!movieOpt.isPresent())
+            throw new IllegalStateException("This movie does not exist");
+
+        Movie movie = movieOpt.get();
+        for(Movie m : user.getSavedMovies())
+        {
+            if(Objects.equals(movie.getName(), m.getName()))
+            {
+                throw new IllegalStateException("This movie is already in your watch list");
+            }
+        }
 
         user.addMovieToWatchList(movie);
         _userRepository.save(user);
     }
-
-    public List<Movie> getWatchList(long userId)
-    {
-        boolean exists = _userRepository.existsById(userId);
-        if(!exists)
-        {
-            throw new IllegalStateException("user with id "+userId+" does not exist in database");
-        }
-        User user = _userRepository.getReferenceById(userId);
-        return new ArrayList<>(user.getSavedMovies());
-    }
-
     public void saveReview(Long userId, Long movieId, ReviewCreateDto reviewDto)
     {
         boolean existsUser = _userRepository.existsById(userId);
@@ -307,5 +302,42 @@ public class UserService{
         User user = userOpt.get();
         user.setName(newName);
         _userRepository.save(user);
+    }
+
+    public AuthenticationResponse updateUsername(String token, UsernameUpdate usernameDto)
+    {
+        Optional<User> userOpt = getUsernameFromJwt(token);
+
+        String oldUsername = userOpt.get().getUsername();
+        String newUsername =  usernameDto.getNewUsername();
+        String oldUsernameGot = usernameDto.getOldUsername();
+
+        if(!Objects.equals(oldUsername, oldUsernameGot))
+            throw  new IllegalStateException("The old username is not oke");
+
+        Optional<User> userOptTest = _userRepository.findUserByUsername(newUsername);
+        if(userOptTest.isPresent())
+            throw new IllegalStateException("This username is already taken");
+
+        User user = userOpt.get();
+        user.setUsername(newUsername);
+        _userRepository.save(user);
+
+        var jwtToken = _jwtService.generateToken(user);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
+    }
+
+    public List<Movie> getWatchList(String token)
+    {
+        String username = _jwtService.extractUsername(token);
+        Optional<User> userOpt = _userRepository.findUserByUsername(username);
+        if(!userOpt.isPresent())
+        {
+            throw new IllegalStateException("user with username: "+username+" does not exist in database");
+        }
+        User user = userOpt.get();
+        return new ArrayList<>(user.getSavedMovies());
     }
 }

@@ -6,10 +6,8 @@ import atm.webproject.movieSite.Entity.Movie;
 import atm.webproject.movieSite.Entity.Role;
 import atm.webproject.movieSite.Entity.User;
 import atm.webproject.movieSite.Service.UserService;
-import io.jsonwebtoken.Jwt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
@@ -107,19 +105,49 @@ public class UserController
             throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
     }
 
-    @PutMapping("/addMovieWatchList/{userId}/movie/{movieId}")
-    public void saveMovieToWatchList(
-            @PathVariable("userId") Long userId,
-            @PathVariable("movieId") Long movieId
-    )
-    {
-        _userService.addMovieToWatchList(userId, movieId);
+    @PutMapping(path="/updateUsername")
+    public AuthenticationResponse updateUsername(
+            @RequestHeader(name = "Authorization") String authorizationHeader,
+            @RequestBody UsernameUpdate usernameDto
+    ) throws IllegalAccessException {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            return _userService.updateUsername(token, usernameDto);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
     }
 
-    @GetMapping("/getWatchList/{userId}")
-    public List<Movie> getWatchList(@PathVariable("userId")Long userId)
-    {
-        return  _userService.getWatchList(userId);
+    @PutMapping("/addMovieWatchList/movie/{movieId}")
+    public void saveMovieToWatchList(
+            @RequestHeader(name = "Authorization") String authorizationHeader,
+            @PathVariable("movieId") Long movieId
+    ) throws IllegalAccessException {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            _userService.addMovieToWatchList(token, movieId);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
+
+    }
+
+    @GetMapping("/getWatchList")
+    public List<Movie> getWatchList(
+            @RequestHeader(name = "Authorization") String authorizationHeader) throws IllegalAccessException {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            return  _userService.getWatchList(token);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
+
     }
 
     @PostMapping("/saveReview/{userId}/movie/{movieId}")
@@ -150,6 +178,8 @@ public class UserController
             throw new IllegalAccessException("Jwt nu e bun, nuu a instrat in service");
 
     }
+
+
 
     @PostMapping("/addRole")
     public void getUserById(@RequestBody Role role)

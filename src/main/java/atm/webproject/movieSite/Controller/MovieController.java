@@ -1,5 +1,6 @@
 package atm.webproject.movieSite.Controller;
 
+import atm.webproject.movieSite.Dtos.MovieInfoDto;
 import atm.webproject.movieSite.Entity.Movie;
 import atm.webproject.movieSite.Service.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,15 @@ public class MovieController {
     {
         return _movieService.getMovies();
     }
+
+    @GetMapping("/getMovie/{movieId}")
+    public MovieInfoDto getMovie(
+            @PathVariable(name = "movieId") Long movieId
+    )
+    {
+        return _movieService.getMovie(movieId);
+    }
+
 
 
     @GetMapping("/getGenderMovies/{gender}")

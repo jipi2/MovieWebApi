@@ -69,6 +69,12 @@ public class Movie {
     )
     int year;
 
+    @Column(
+            name = "description",
+            nullable = false
+    )
+    String description;
+
     @JsonIgnore
     @ManyToMany(mappedBy = "savedMovies")
     private Set<User> users = new HashSet<>();
@@ -77,7 +83,7 @@ public class Movie {
     @OneToMany(mappedBy = "movie")
     private Set<Review> reviews = new HashSet<>();
 
-    public Movie(Long id, String name, float rating, String pathImage, String trailer,String nameActors, String gender, int year) {
+    public Movie(Long id, String name, float rating, String pathImage, String trailer,String nameActors, String gender, int year, String description) {
         Id = id;
         this.name = name;
         this.rating = rating;
@@ -86,9 +92,10 @@ public class Movie {
         this.nameActors = nameActors;
         this.gender = gender;
         this.year = year;
+        this.description = description;
     }
 
-    public Movie(String name, float rating, String pathImage, String trailer, String nameActors, String gender, int year) {
+    public Movie(String name, float rating, String pathImage, String trailer, String nameActors, String gender, int year, String description) {
         this.name = name;
         this.rating = rating;
         this.pathImage = pathImage;
@@ -96,15 +103,17 @@ public class Movie {
         this.nameActors = nameActors;
         this.gender=gender;
         this.year = year;
+        this.description = description;
     }
 
-    public Movie(String name, float rating, String pathImage, String trailer, String gender, int year) {
+    public Movie(String name, float rating, String pathImage, String trailer, String gender, int year, String description) {
         this.name = name;
         this.rating = rating;
         this.pathImage = pathImage;
         this.trailer = trailer;
         this.gender = gender;
         this.year = year;
+        this.description = description;
     }
 
     public Movie() {

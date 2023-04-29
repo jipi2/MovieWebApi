@@ -1,5 +1,6 @@
 package atm.webproject.movieSite.Service;
 
+import atm.webproject.movieSite.Dtos.MovieInfoDto;
 import atm.webproject.movieSite.Entity.Movie;
 import atm.webproject.movieSite.Repository.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,5 +48,22 @@ public class MovieService {
         }
         else
             _movieRepository.deleteById(movieId);
+    }
+
+    public MovieInfoDto getMovie(Long movieId)
+    {
+
+        Optional<Movie> movieOpt = _movieRepository.findById(movieId);
+        if(!movieOpt.isPresent())
+            throw new IllegalStateException("This movie does not exist");
+
+        MovieInfoDto movieDto = new MovieInfoDto(
+                movieOpt.get().getName(),
+                movieOpt.get().getDescription(),
+                movieOpt.get().getTrailer(),
+                movieOpt.get().getPathImage(),
+                movieOpt.get().getRating()
+        );
+        return movieDto;
     }
 }
