@@ -134,32 +134,29 @@ public class UserService{
         user.addMovieToWatchList(movie);
         _userRepository.save(user);
     }
-    public void saveReview(Long userId, Long movieId, ReviewCreateDto reviewDto)
+    public void saveReview(String token, Long movieId, ReviewCreateDto reviewDto)
     {
-        boolean existsUser = _userRepository.existsById(userId);
-        boolean existsMovie = _movieRepository.existsById(movieId);
+        String username = _jwtService.extractUsername(token);
+        Optional<User> userOpt = _userRepository.findUserByUsername(username);
+        if(!userOpt.isPresent())
+            throw new IllegalStateException("This user does not exists in database");
 
-        if(!existsUser)
-        {
-            throw new IllegalStateException("user with id "+userId+" does not exist in database");
-        }
-
-        if(!existsMovie)
-        {
-            throw new IllegalStateException("movie with id "+movieId+" does not exist in database");
-        }
+        User user = userOpt.get();
+        Optional<Movie> movieOpt = _movieRepository.findById(movieId);
+        if(!movieOpt.isPresent())
+            throw new IllegalStateException("This movie does not exist");
 
         List<Review> reviews = _reviewRepository.findAll();
         for (Review rev : reviews)
         {
-            if(Objects.equals(rev.getMovie().getId(), movieId) && Objects.equals(rev.getUser().getId(), userId))
+            if(Objects.equals(rev.getMovie().getId(), movieId) && Objects.equals(rev.getUser().getId(), user.getId()))
             {
-                throw new IllegalStateException("User with id: "+userId+" already has a review at this movie");
+                throw new IllegalStateException("User with id: "+user.getId()+" already has a review at this movie");
             }
         }
 
         Review review = new Review(reviewDto.getContent(), reviewDto.getNumberOfStars());
-        review.assignUser(_userRepository.getReferenceById(userId));
+        review.assignUser(_userRepository.getReferenceById(user.getId()));
         review.assignMovie(_movieRepository.getReferenceById(movieId));
 
         _reviewRepository.save(review);

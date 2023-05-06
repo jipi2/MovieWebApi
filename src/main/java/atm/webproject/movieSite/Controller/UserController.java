@@ -150,14 +150,21 @@ public class UserController
 
     }
 
-    @PostMapping("/saveReview/{userId}/movie/{movieId}")
-    public void saveReview(
-            @PathVariable("userId") Long userId,
+    @PostMapping("/saveReview/movie/{movieId}")
+    public ResponseEntity<Object> saveReview(
+            @RequestHeader(name = "Authorization") String authorizationHeader,
             @PathVariable("movieId")Long movieId,
             @RequestBody ReviewCreateDto reviewDto
-            )
-    {
-        _userService.saveReview(userId, movieId, reviewDto);
+            ) throws IllegalAccessException {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            _userService.saveReview(token, movieId, reviewDto);
+            return ResponseEntity.ok().build();
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
     }
 
     @GetMapping("getUserById/{userId}")
