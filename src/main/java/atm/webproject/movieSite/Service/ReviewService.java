@@ -1,6 +1,8 @@
 package atm.webproject.movieSite.Service;
 
+import atm.webproject.movieSite.Dtos.ReviewCreateDto;
 import atm.webproject.movieSite.Dtos.ReviewMovieDto;
+import atm.webproject.movieSite.Dtos.ReviewValidationDto;
 import atm.webproject.movieSite.Entity.Movie;
 import atm.webproject.movieSite.Entity.Review;
 import atm.webproject.movieSite.Repository.ReviewRepository;
@@ -11,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ReviewService
@@ -49,9 +52,35 @@ public class ReviewService
        {
            if(Objects.equals(rew.getMovie().getId(), movieId))
            {
-               reviewToSend.add(new ReviewMovieDto(rew.getContent(), rew.getUser().getUsername(), rew.getUser().getName(), rew.getNumberOfStars()));
+               if (rew.isVerified() == true)
+                    reviewToSend.add(new ReviewMovieDto(rew.getContent(), rew.getUser().getUsername(), rew.getUser().getName(), rew.getNumberOfStars()));
            }
        }
        return reviewToSend;
+    }
+
+    public List<ReviewValidationDto> getUnverifiedReviews()
+    {
+        List<Review> reviews =  _reviewRepository.findAll().stream().filter(review -> review.isVerified() == false ).collect(Collectors.toList());
+        List<ReviewValidationDto> revList = new ArrayList<>();
+
+        for(Review rew : reviews)
+        {
+            revList.add(new ReviewValidationDto(rew.getId(), rew.getUser().getUsername(), rew.getContent()));
+        }
+        return revList;
+    }
+
+    public void validateReview(Long reviewId)
+    {
+       Optional<Review> revOpt = _reviewRepository.findById(reviewId);
+
+       if(!revOpt.isPresent())
+       {
+           throw new IllegalStateException("review with id "+reviewId+" does not exist in database");
+       }
+       Review review = revOpt.get();
+       review.setVerified(true);
+       _reviewRepository.save(review);
     }
 }

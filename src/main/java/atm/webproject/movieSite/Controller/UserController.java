@@ -30,6 +30,13 @@ public class UserController
         return _userService.getUsers();
     }
 
+    @GetMapping("/getNormalUsers")
+    public List<UserGetDto> getNormalUsers()
+    {
+        return _userService.getNormalUsers();
+    }
+
+
     @PostMapping("/addUser")
     public void addUser(@RequestBody User user)
     {

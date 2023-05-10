@@ -1,6 +1,7 @@
 package atm.webproject.movieSite.Controller;
 
 import atm.webproject.movieSite.Dtos.ReviewMovieDto;
+import atm.webproject.movieSite.Dtos.ReviewValidationDto;
 import atm.webproject.movieSite.Entity.Review;
 import atm.webproject.movieSite.Service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,19 @@ public class ReviewController {
     {
         return _reviewService.getReviews();
     }
+
+    @GetMapping("/getUnverifiedReviews")
+    public List<ReviewValidationDto> getUnverifiedReviews()
+    {
+        return _reviewService.getUnverifiedReviews();
+    }
+
+    @PutMapping("/validateReview/{reviewId}")
+    public void validateReview(@PathVariable("reviewId") Long reviewId)
+    {
+        _reviewService.validateReview(reviewId);
+    }
+
 
     @DeleteMapping(path = "/deleteReview/{reviewId}")
     public void deleteReview(@PathVariable("reviewId")Long reviewId)

@@ -75,15 +75,15 @@ public class UserService{
         {
             throw new IllegalStateException("user with id "+ userId + " does not exists");
         }
-        User user = _userRepository.findById(userId).get();
-        List<Review> reviews = new ArrayList<>(user.getReviews());
+        else {
+            User user = _userRepository.findById(userId).get();
+            List<Review> reviews = new ArrayList<>(user.getReviews());
 
-        for(Review r : reviews)
-        {
-            _reviewRepository.deleteById(r.getId());
+            for (Review r : reviews) {
+                _reviewRepository.deleteById(r.getId());
+            }
+            _userRepository.deleteById(userId);
         }
-
-        _userRepository.deleteById(userId);
     }
 
     @Transactional
@@ -336,5 +336,21 @@ public class UserService{
         }
         User user = userOpt.get();
         return new ArrayList<>(user.getSavedMovies());
+    }
+
+    public List<UserGetDto> getNormalUsers()
+    {
+        List <User> userList = _userRepository.findAll();
+        List<UserGetDto> normalUsersList = new ArrayList<>();
+
+        for(User u:userList)
+        {
+            if(Objects.equals(u.getSavedRoles().stream().findFirst().get().getRoleName(),"client"))
+            {
+                normalUsersList.add(new UserGetDto(u.getId(), u.getName(), u.getUsername(), u.getEmail(), u.getNumberOfPoints()));
+            }
+        }
+
+        return normalUsersList;
     }
 }
