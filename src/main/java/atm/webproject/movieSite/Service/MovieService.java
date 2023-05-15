@@ -6,19 +6,35 @@ import atm.webproject.movieSite.Repository.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-
+import atm.webproject.movieSite.Entity.User;
 @Service
 public class MovieService {
     private final MovieRepository _movieRepository;
+    private final UserService _userService;
 
     @Autowired
-    public MovieService(MovieRepository _movieRepository) {
+    public MovieService(MovieRepository _movieRepository, UserService userService) {
         this._movieRepository = _movieRepository;
+        this._userService = userService;
     }
 
+    private boolean verifyAdmin(String token)
+    {
+        Optional<User> userOpt = _userService.getUsernameFromJwt(token);
+        if(!userOpt.isPresent())
+        {
+            return false;
+        }
+
+        if(!Objects.equals(userOpt.get().getSavedRoles().stream().findFirst().get().getRoleName(), "admin"))
+        {
+            return false;
+        }
+        return true;
+    }
     public List<Movie> getMovies()
     {
         return _movieRepository.findAll();
@@ -29,8 +45,11 @@ public class MovieService {
         return _movieRepository.findMovieByGender(gender);
     }
 
-    public void addNewMovie(Movie movie)
+    public void addNewMovie(String token, Movie movie)
     {
+        if (!verifyAdmin(token))
+            throw new IllegalStateException("You are not admin");
+
         Optional<Movie> movieOptional = _movieRepository.findMovieByName(movie.getName());
         if(movieOptional.isPresent())
         {
@@ -52,7 +71,6 @@ public class MovieService {
 
     public MovieInfoDto getMovie(Long movieId)
     {
-
         Optional<Movie> movieOpt = _movieRepository.findById(movieId);
         if(!movieOpt.isPresent())
             throw new IllegalStateException("This movie does not exist");
@@ -65,5 +83,18 @@ public class MovieService {
                 movieOpt.get().getRating()
         );
         return movieDto;
+    }
+
+    public Long getMovieIdByName(String name)
+    {
+        List<Movie> movieList = _movieRepository.findAll();
+        for(Movie m:movieList)
+        {
+            if (m.getName().toLowerCase().contains(name.toLowerCase()))
+            {
+                return m.getId();
+            }
+        }
+        return (long) -1;
     }
 }

@@ -117,6 +117,8 @@ public class UserService{
         if(!userOpt.isPresent())
             throw new IllegalStateException("This user does not exists in database");
 
+
+
         User user = userOpt.get();
         Optional<Movie> movieOpt = _movieRepository.findById(movieId);
         if(!movieOpt.isPresent())
@@ -236,7 +238,7 @@ public class UserService{
 
     }
 
-    private Optional<User> getUsernameFromJwt(String token)
+    public Optional<User> getUsernameFromJwt(String token)
     {
         String username = _jwtService.extractUsername(token);
         Optional<User> userOptional = _userRepository.findUserByUsername(username);
@@ -338,8 +340,17 @@ public class UserService{
         return new ArrayList<>(user.getSavedMovies());
     }
 
-    public List<UserGetDto> getNormalUsers()
+    public List<UserGetDto> getNormalUsers(String token)
     {
+        Optional<User> useropt = getUsernameFromJwt(token);
+        if(!useropt.isPresent())
+            throw new IllegalStateException("You are not admin");
+
+        if(!Objects.equals(useropt.get().getSavedRoles().stream().findFirst().get().getRoleName(), "admin"))
+        {
+            throw new IllegalStateException("You are not admin");
+        }
+
         List <User> userList = _userRepository.findAll();
         List<UserGetDto> normalUsersList = new ArrayList<>();
 

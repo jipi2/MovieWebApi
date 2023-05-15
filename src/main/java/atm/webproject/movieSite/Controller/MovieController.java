@@ -37,7 +37,13 @@ public class MovieController {
         return _movieService.getMovie(movieId);
     }
 
-
+    @GetMapping("/getMovieIdByName/{name}")
+    public Long getIdMovieByName(
+            @PathVariable(name = "name") String name
+    )
+    {
+       return _movieService.getMovieIdByName(name);
+    }
 
     @GetMapping("/getGenderMovies/{gender}")
 //    @CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST})
@@ -47,10 +53,20 @@ public class MovieController {
     }
 
     @PostMapping("/addMovie")
-    public void addMovie(@RequestBody Movie movie)
-    {
-        _movieService.addNewMovie(movie);
+    public void addMovie(
+            @RequestHeader(name = "Authorization") String authorizationHeader,
+            @RequestBody Movie movie) throws IllegalAccessException {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            _movieService.addNewMovie(token,movie);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
     }
+
+    @PostMapping
 
     @DeleteMapping(path = "/deleteMovie/{movieId}")
     public void deleteMovie(@PathVariable("movieId")Long movieId)

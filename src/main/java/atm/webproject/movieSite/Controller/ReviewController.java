@@ -5,6 +5,7 @@ import atm.webproject.movieSite.Dtos.ReviewValidationDto;
 import atm.webproject.movieSite.Entity.Review;
 import atm.webproject.movieSite.Service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,22 +28,47 @@ public class ReviewController {
     }
 
     @GetMapping("/getUnverifiedReviews")
-    public List<ReviewValidationDto> getUnverifiedReviews()
-    {
-        return _reviewService.getUnverifiedReviews();
+    public List<ReviewValidationDto> getUnverifiedReviews( @RequestHeader(name = "Authorization") String authorizationHeader) throws IllegalAccessException {
+
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            return _reviewService.getUnverifiedReviews(token);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
     }
 
     @PutMapping("/validateReview/{reviewId}")
-    public void validateReview(@PathVariable("reviewId") Long reviewId)
+    public void validateReview(
+            @RequestHeader(name = "Authorization") String authorizationHeader,
+            @PathVariable("reviewId") Long reviewId) throws IllegalAccessException
     {
-        _reviewService.validateReview(reviewId);
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            _reviewService.validateReview(token, reviewId);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
     }
 
 
     @DeleteMapping(path = "/deleteReview/{reviewId}")
-    public void deleteReview(@PathVariable("reviewId")Long reviewId)
+    public void deleteReview(
+            @RequestHeader(name = "Authorization") String authorizationHeader,
+            @PathVariable("reviewId")Long reviewId) throws IllegalAccessException
     {
-        _reviewService.deleteReview(reviewId);
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            _reviewService.deleteReview(token ,reviewId);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
     }
 
     @GetMapping("/getMovieReview/{movieId}")

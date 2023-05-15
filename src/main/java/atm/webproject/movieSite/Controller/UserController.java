@@ -25,15 +25,23 @@ public class UserController
     }
 
     @GetMapping("/getUsers")
-    public List<User> getUsers()
+    public List<User> getUsers(
+    )
     {
         return _userService.getUsers();
     }
 
     @GetMapping("/getNormalUsers")
-    public List<UserGetDto> getNormalUsers()
+    public List<UserGetDto> getNormalUsers( @RequestHeader(name = "Authorization") String authorizationHeader) throws IllegalAccessException
     {
-        return _userService.getNormalUsers();
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            return _userService.getNormalUsers(token);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
     }
 
 
