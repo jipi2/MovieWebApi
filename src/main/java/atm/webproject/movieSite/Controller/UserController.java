@@ -139,7 +139,8 @@ public class UserController
     public void saveMovieToWatchList(
             @RequestHeader(name = "Authorization") String authorizationHeader,
             @PathVariable("movieId") Long movieId
-    ) throws IllegalAccessException {
+    ) throws IllegalAccessException
+    {
         String token = null;
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             token = authorizationHeader.substring(7);
@@ -150,6 +151,22 @@ public class UserController
             throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
 
     }
+
+    @PutMapping("/removeMovieWatchList/movie/{movieId}")
+    public void removeMovieFromWatchList(
+            @RequestHeader(name = "Authorization") String authorizationHeader,
+            @PathVariable("movieId") Long movieId
+    ) throws IllegalAccessException {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            _userService.removeMovieFromWatchList(token, movieId);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
+    }
+
 
     @GetMapping("/getWatchList")
     public List<Movie> getWatchList(

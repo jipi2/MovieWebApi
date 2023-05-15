@@ -364,4 +364,33 @@ public class UserService{
 
         return normalUsersList;
     }
+
+    public void removeMovieFromWatchList(String token, Long movieId)
+    {
+        String username = _jwtService.extractUsername(token);
+        Optional<User> userOpt = _userRepository.findUserByUsername(username);
+        if(!userOpt.isPresent())
+            throw new IllegalStateException("This user does not exists in database");
+
+
+
+        User user = userOpt.get();
+        Optional<Movie> movieOpt = _movieRepository.findById(movieId);
+        if(!movieOpt.isPresent())
+            throw new IllegalStateException("This movie does not exist");
+
+        Movie movie = movieOpt.get();
+        for(Movie m : user.getSavedMovies())
+        {
+            if(Objects.equals(movie.getName(), m.getName()))
+            {
+                //throw new IllegalStateException("This movie is already in your watch list");
+                user.removeMovieFromWatchList(movie);
+                _userRepository.save(user);
+                return;
+            }
+        }
+
+       // throw new IllegalStateException("This movie is not in your watch list");
+    }
 }

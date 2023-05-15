@@ -143,4 +143,8 @@ public class User implements UserDetails {
         return false;
     }
 
+    public void removeMovieFromWatchList(Movie movie)
+    {
+        savedMovies.remove(movie);
+    }
 }
