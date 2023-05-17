@@ -20,7 +20,8 @@ import javax.swing.text.html.Option;
 import javax.transaction.Transactional;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class UserService{
@@ -68,6 +69,7 @@ public class UserService{
         _userRepository.save(user);
     }
 
+    @Transactional
     public void deleteUser(Long userId)
     {
         boolean exists = _userRepository.existsById(userId);
@@ -75,14 +77,17 @@ public class UserService{
         {
             throw new IllegalStateException("user with id "+ userId + " does not exists");
         }
-        else {
-            User user = _userRepository.findById(userId).get();
-            List<Review> reviews = new ArrayList<>(user.getReviews());
+        else
+        {
+            Optional<User> user = _userRepository.findById(userId);
+            Optional<User> deletedUserEntity = _userRepository.findUserByUsername("DeletedUser");
 
-            for (Review r : reviews) {
-                _reviewRepository.deleteById(r.getId());
+            for(Review r:user.get().getReviews())
+            {
+                r.setUser(deletedUserEntity.get());
             }
-            _userRepository.deleteById(userId);
+
+           _userRepository.deleteById(userId);
         }
     }
 
@@ -181,19 +186,33 @@ public class UserService{
         _roleRepository.save(role);
     }
 
+    private boolean validateEmail(String email)
+    {
+        String EMAIL_PATTERN =
+                "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@" + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+        Pattern pattern = Pattern.compile(EMAIL_PATTERN);
+        Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
+    }
+
     public AuthenticationResponse registerUser(UserRegisterDto userDto) throws NoSuchAlgorithmException {
         Optional<User> userOptional = _userRepository.findUserByEmail(userDto.getEmail());
 
+        if(!validateEmail(userDto.getEmail()))
+        {
+            throw new IllegalStateException("Invalid Email");
+        }
+
         if(userOptional.isPresent())
         {
-            throw new IllegalStateException("email taken");
+            throw new IllegalStateException("Email taken");
         }
 
         Optional<User> userOptional2 = _userRepository.findUserByUsername(userDto.getUsername());
 
         if(userOptional2.isPresent())
         {
-            throw new IllegalStateException("username taken");
+            throw new IllegalStateException("Username taken");
         }
 
         User user = new User(userDto.getName(), userDto.getUsername(), userDto.getEmail(),_passwordEncoder.encode(userDto.getPassword()), 0);
@@ -358,7 +377,7 @@ public class UserService{
         {
             if(Objects.equals(u.getSavedRoles().stream().findFirst().get().getRoleName(),"client"))
             {
-                normalUsersList.add(new UserGetDto(u.getId(), u.getName(), u.getUsername(), u.getEmail(), u.getNumberOfPoints()));
+                normalUsersList.add(new UserGetDto(u.getId(), u.getName(), u.getUsername(), u.getEmail(), u.getNumberOfPoints(), false));
             }
         }
 
@@ -369,10 +388,9 @@ public class UserService{
     {
         String username = _jwtService.extractUsername(token);
         Optional<User> userOpt = _userRepository.findUserByUsername(username);
-        if(!userOpt.isPresent())
+        if(!userOpt.isPresent()) {
             throw new IllegalStateException("This user does not exists in database");
-
-
+        }
 
         User user = userOpt.get();
         Optional<Movie> movieOpt = _movieRepository.findById(movieId);
@@ -392,5 +410,91 @@ public class UserService{
         }
 
        // throw new IllegalStateException("This movie is not in your watch list");
+    }
+
+    public void makeAdmin(String token, Long userId)
+    {
+        Optional<User> admin = getUsernameFromJwt(token);
+        if(!admin.isPresent())
+        {
+            throw new IllegalStateException("You are not admin");
+        }
+        if (!Objects.equals(admin.get().getSavedRoles().stream().findFirst().get().getRoleName(), "admin"))
+        {
+            throw new IllegalStateException("You are not admin");
+        }
+
+        Optional<User> client = _userRepository.findById(userId);
+        if (!client.isPresent()) {
+            throw new IllegalStateException("Userul cu id-ul "+userId+" nu exista");
+        }
+
+        client.get().removeRoleFromUser("client");
+        Optional<Role> roleAdmin = _roleRepository.findRoleByRoleName("admin");
+
+        client.get().addRoleToUser(roleAdmin.get());
+        _userRepository.save(client.get());
+    }
+
+    public void deleteAdminPriv(String token, Long userId)
+    {
+        Optional<User> admin = getUsernameFromJwt(token);
+        if(!admin.isPresent())
+        {
+            throw new IllegalStateException("You are not admin");
+        }
+        if (!Objects.equals(admin.get().getSavedRoles().stream().findFirst().get().getRoleName(), "admin"))
+        {
+            throw new IllegalStateException("You are not admin");
+        }
+
+        Optional<User> client = _userRepository.findById(userId);
+        if (!client.isPresent()) {
+            throw new IllegalStateException("Userul cu id-ul "+userId+" nu exista");
+        }
+
+        client.get().removeRoleFromUser("admin");
+        Optional<Role> roleClient = _roleRepository.findRoleByRoleName("client");
+
+        client.get().addRoleToUser(roleClient.get());
+        _userRepository.save(client.get());
+    }
+
+    public List<UserGetDto> getUsersExceptThisOne(String token)
+    {
+        Optional<User> useropt = getUsernameFromJwt(token);
+        if(!useropt.isPresent())
+            throw new IllegalStateException("You are not admin");
+
+        if(!Objects.equals(useropt.get().getSavedRoles().stream().findFirst().get().getRoleName(), "admin"))
+        {
+            throw new IllegalStateException("You are not admin");
+        }
+
+        List <User> userList = _userRepository.findAll();
+        List<UserGetDto> normalUsersList = new ArrayList<>();
+
+        for(User u:userList)
+        {
+            if(!Objects.equals(u.getUsername(),useropt.get().getUsername()) &&
+                    !Objects.equals(u.getUsername(),"DeletedUser"))
+            {
+
+                UserGetDto normalUser = new UserGetDto(u.getId(), u.getName(), u.getUsername(), u.getEmail(), u.getNumberOfPoints());
+                normalUser.setAdmin(!Objects.equals(u.getSavedRoles().stream().findFirst().get().getRoleName(), "client"));
+                normalUsersList.add(normalUser);
+
+            }
+        }
+
+        return normalUsersList;
+    }
+
+    public boolean verifyIsAdmin(String token)
+    {
+        Optional<User>  user = getUsernameFromJwt(token);
+        if (!user.isPresent()) throw new IllegalStateException("This user does not exists)");
+        boolean isAdmin = Objects.equals(user.get().getSavedRoles().stream().findFirst().get().getRoleName(), "admin");
+        return isAdmin;
     }
 }

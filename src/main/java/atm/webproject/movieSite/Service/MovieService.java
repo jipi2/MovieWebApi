@@ -2,6 +2,7 @@ package atm.webproject.movieSite.Service;
 
 import atm.webproject.movieSite.Dtos.MovieInfoDto;
 import atm.webproject.movieSite.Entity.Movie;
+import atm.webproject.movieSite.Entity.Review;
 import atm.webproject.movieSite.Repository.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -96,5 +97,27 @@ public class MovieService {
             }
         }
         return (long) -1;
+    }
+
+    public void updateRating(Long movieId)
+    {
+        Optional<Movie> movieOpt = _movieRepository.findById(movieId);
+        if(!movieOpt.isPresent())
+        {
+            throw new IllegalStateException("This movie does not exist");
+        }
+
+        double rating = 0;
+        int count = 0;
+
+        for(Review review:movieOpt.get().getReviews())
+        {
+            rating+=(review.getNumberOfStars()*2);
+            count++;
+        }
+        rating = rating/count;
+
+        movieOpt.get().setRating(rating);
+        _movieRepository.save(movieOpt.get());
     }
 }

@@ -12,4 +12,5 @@ public interface MovieRepository extends JpaRepository<Movie, Long>
 {
     List<Movie> findMovieByGender(String gender);
     Optional<Movie> findMovieByName(String name);
+
 }

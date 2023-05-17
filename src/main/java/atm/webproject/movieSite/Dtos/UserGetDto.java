@@ -15,6 +15,16 @@ public class UserGetDto
     String username;
     String email;
     int numberOfPoints;
+    boolean isAdmin;
+
+    public UserGetDto(Long id, String name, String username, String email, int numberOfPoints, boolean isAdmin) {
+        Id = id;
+        this.name = name;
+        this.username = username;
+        this.email = email;
+        this.numberOfPoints = numberOfPoints;
+        this.isAdmin = isAdmin;
+    }
 
     public UserGetDto(Long id, String name, String username, String email, int numberOfPoints) {
         Id = id;
@@ -23,7 +33,6 @@ public class UserGetDto
         this.email = email;
         this.numberOfPoints = numberOfPoints;
     }
-
     public UserGetDto()
     {
         

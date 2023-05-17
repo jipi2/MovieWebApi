@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -106,6 +108,16 @@ public class User implements UserDetails {
     private Set<Role> savedRoles = new HashSet<>();
 
     public void addRoleToUser(Role role) {savedRoles.add(role);}
+    public void removeRoleFromUser(String roleStr)
+    {
+        for(Role role: savedRoles)
+        {
+            if(Objects.equals(role.getRoleName(), roleStr))
+            {
+                savedRoles.remove(role);
+            }
+        }
+    }
     public void addMovieToWatchList(Movie movie)
     {
         savedMovies.add(movie);

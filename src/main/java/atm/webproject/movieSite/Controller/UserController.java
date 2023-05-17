@@ -44,7 +44,18 @@ public class UserController
             throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
     }
 
+    @GetMapping("/UsersExceptThisUser")
+    public List<UserGetDto> getUsersExceptThisOne( @RequestHeader(name = "Authorization") String authorizationHeader) throws IllegalAccessException
+    {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
 
+            return _userService.getUsersExceptThisOne(token);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
+    }
     @PostMapping("/addUser")
     public void addUser(@RequestBody User user)
     {
@@ -62,7 +73,8 @@ public class UserController
     }
 
     @DeleteMapping(path = "/deleteUser/{userId}")
-    public void deleteUser(@PathVariable("userId") Long userId) {
+    public void deleteUser(@PathVariable("userId") Long userId)
+    {
         _userService.deleteUser(userId);
     }
 
@@ -85,6 +97,47 @@ public class UserController
             token = authorizationHeader.substring(7);
 
             _userService.updatePass(token, passDto);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
+    }
+
+    @PutMapping(path = "/makeAdmin/{userId}")
+    public void makeAdmin(
+            @RequestHeader(name = "Authorization") String authorizationHeader,
+            @PathVariable("userId") Long userId) throws IllegalAccessException {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            _userService.makeAdmin(token, userId);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
+    }
+
+    @PutMapping(path = "/deleteAdminRights/{userId}")
+    public void deleteAdminRights(
+            @RequestHeader(name = "Authorization") String authorizationHeader,
+            @PathVariable("userId") Long userId) throws IllegalAccessException {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            _userService.deleteAdminPriv(token, userId);
+        }
+        else
+            throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");
+    }
+
+    @GetMapping(path = "/isAdmin")
+    public boolean verifyIsAdmin(
+            @RequestHeader(name = "Authorization") String authorizationHeader) throws IllegalAccessException {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+
+            return _userService.verifyIsAdmin(token);
         }
         else
             throw new IllegalAccessException("Jwt nu e bun, nuu a intrat in service");

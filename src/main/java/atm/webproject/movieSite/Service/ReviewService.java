@@ -3,6 +3,7 @@ package atm.webproject.movieSite.Service;
 import atm.webproject.movieSite.Dtos.ReviewMovieDto;
 import atm.webproject.movieSite.Dtos.ReviewValidationDto;
 import atm.webproject.movieSite.Entity.Review;
+import atm.webproject.movieSite.Repository.MovieRepository;
 import atm.webproject.movieSite.Repository.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,10 +20,12 @@ public class ReviewService
 {
     private final ReviewRepository _reviewRepository;
     private final UserService _userService;
+    private final MovieService _movieService;
     @Autowired
-    public ReviewService(ReviewRepository reviewRepository, UserService userService) {
+    public ReviewService(ReviewRepository reviewRepository, UserService userService, MovieService movieService) {
         _reviewRepository = reviewRepository;
         _userService = userService;
+        _movieService = movieService;
     }
     public List<Review> getReviews()
     {
@@ -106,5 +109,8 @@ public class ReviewService
        Review review = revOpt.get();
        review.setVerified(true);
        _reviewRepository.save(review);
+
+       Long movieId = review.getMovie().getId();
+       _movieService.updateRating(movieId);
     }
 }
