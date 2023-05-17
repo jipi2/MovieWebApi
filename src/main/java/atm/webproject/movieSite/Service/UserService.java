@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import javax.transaction.Transactional;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -33,9 +32,10 @@ public class UserService{
     private final HashClass _passwordEncoder;
     private final JwtService _jwtService;
     private final AuthenticationManager _authenticationManager;
+    private final EmailService _emailService;
 
     @Autowired
-    public UserService(UserRepository _userRepository, MovieRepository movieRepository, ReviewRepository reviewRepository, RoleRepository roleRepository, HashClass passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
+    public UserService(UserRepository _userRepository, MovieRepository movieRepository, ReviewRepository reviewRepository, RoleRepository roleRepository, HashClass passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager, EmailService emailService) {
         this._userRepository = _userRepository;
         this._movieRepository = movieRepository;
         this._reviewRepository = reviewRepository;
@@ -43,6 +43,7 @@ public class UserService{
         this._passwordEncoder = passwordEncoder;
         this._jwtService = jwtService;
         this._authenticationManager = authenticationManager;
+        this._emailService = emailService;
     }
 
     public List<User> getUsers()
@@ -496,5 +497,37 @@ public class UserService{
         if (!user.isPresent()) throw new IllegalStateException("This user does not exists)");
         boolean isAdmin = Objects.equals(user.get().getSavedRoles().stream().findFirst().get().getRoleName(), "admin");
         return isAdmin;
+    }
+
+    public void sendEmailResetation(String email)
+    {
+        Optional<User> userOpt = _userRepository.findUserByEmail(email);
+        if(!userOpt.isPresent())
+        {
+            throw new IllegalStateException("The user with email: "+email+" does not have an account");
+        }
+
+        String link="http://localhost/JipiMovies/html/resetPass.html";
+        String subject = "Jipi's Movies";
+        String body = "To change your password, click on this link:\n"+link;
+
+        _emailService.sendEmail(email, subject, body);
+    }
+
+    public void resetPassowrd(PasswordResetDto passdto)
+    {
+        Optional<User> userOpt = _userRepository.findUserByEmail(passdto.getEmail());
+        if(!userOpt.isPresent())
+        {
+            throw new IllegalStateException("The user with email: "+passdto.getEmail()+" does not have an account");
+        }
+
+        if(!Objects.equals(passdto.getConfirmPassword(), passdto.getPassword()))
+        {
+            throw new IllegalStateException("The passwords are not the same!Make sure they are the same");
+        }
+
+        userOpt.get().setPassword(_passwordEncoder.encode(passdto.getPassword()));
+        _userRepository.save(userOpt.get());
     }
 }

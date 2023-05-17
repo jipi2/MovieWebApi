@@ -5,6 +5,7 @@ import atm.webproject.movieSite.Dtos.*;
 import atm.webproject.movieSite.Entity.Movie;
 import atm.webproject.movieSite.Entity.Role;
 import atm.webproject.movieSite.Entity.User;
+import atm.webproject.movieSite.Service.EmailService;
 import atm.webproject.movieSite.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,19 @@ public class UserController
     {
         return _userService.getUsers();
     }
+
+    @PutMapping("/resetPassEmail")
+    public void sendEmail(@RequestBody String email)
+    {
+        _userService.sendEmailResetation(email);
+    }
+
+    @PutMapping("/resetPass")
+    public void resetPassword(@RequestBody PasswordResetDto passdto)
+    {
+        _userService.resetPassowrd(passdto);
+    }
+
 
     @GetMapping("/getNormalUsers")
     public List<UserGetDto> getNormalUsers( @RequestHeader(name = "Authorization") String authorizationHeader) throws IllegalAccessException
