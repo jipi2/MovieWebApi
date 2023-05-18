@@ -199,6 +199,16 @@ public class UserService{
     public AuthenticationResponse registerUser(UserRegisterDto userDto) throws NoSuchAlgorithmException {
         Optional<User> userOptional = _userRepository.findUserByEmail(userDto.getEmail());
 
+        if(userDto.getPassword().length() < 5)
+        {
+            throw new IllegalStateException("The password must be at least 5 characters long!");
+        }
+
+        if(userDto.getPassword().trim().isEmpty())
+        {
+            throw new IllegalStateException("The password can not be just empty spaces!");
+        }
+
         if(!validateEmail(userDto.getEmail()))
         {
             throw new IllegalStateException("Invalid Email");
@@ -526,6 +536,17 @@ public class UserService{
         {
             throw new IllegalStateException("The passwords are not the same!Make sure they are the same");
         }
+
+        if(passdto.getPassword().length() < 5)
+        {
+            throw new IllegalStateException("The password must be at least 5 characters long!");
+        }
+
+        if(passdto.getPassword().trim().isEmpty())
+        {
+            throw new IllegalStateException("The password can not be just empty spaces!");
+        }
+
 
         userOpt.get().setPassword(_passwordEncoder.encode(passdto.getPassword()));
         _userRepository.save(userOpt.get());
